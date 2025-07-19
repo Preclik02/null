@@ -41,6 +41,7 @@ chmod +x ~/.null/nc/port_scan
 chmod +x ~/.null/nc/rpg
 chmod +x ~/.null/nc/ssh_connect
 chmod +x ~/.null/nc/vnc_connect
+chmod +x ~/.null/nc/server
 
 echo "[+] adding the null to path"
 
