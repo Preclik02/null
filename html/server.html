@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>NullOS System Monitor</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #00ffcc;
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #111;
+      border: 1px solid #00ffcc;
+      padding: 15px;
+      margin: 10px;
+      width: 350px;
+      box-shadow: 0 0 10px #00ffcc44;
+      border-radius: 5px;
+    }
+    .label {
+      color: #88ffee;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 NullOS System Monitor</h1>
+
+  <div class="card">
+    <div class="label">🕒 Time:</div>
+    <div id="time">--:--:--</div>
+  </div>
+
+  <div class="card">
+    <div class="label">🌡️ CPU Temperature:</div>
+    <div id="cpuTemp">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">🧠 CPU Model:</div>
+    <div id="cpuModel">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">📡 Local IP:</div>
+    <div id="localIp">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">🌍 Public IP:</div>
+    <div id="publicIp">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">💾 RAM Usage:</div>
+    <div id="ram">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">🗄️ Disk Usage:</div>
+    <div id="disk">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">⏳ Uptime:</div>
+    <div id="uptime">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">👤 Username:</div>
+    <div id="user">Loading...</div>
+  </div>
+
+  <div class="card">
+    <div class="label">📋 Add Progress Log:</div>
+      <input type="text" id="progressInput" placeholder="Write something..." class="input-field" />
+      <button onclick="submitProgress()" class="submit-btn">➕ Submit</button>
+    <div id="progressStatus" class="status-text"></div>
+  </div>
+
+
+
+  <script>
+	const correctUsername = "admin";
+    const correctPassword = "1234";
+
+    const username = prompt("Enter username:");
+    const password = prompt("Enter password:");
+
+    if (username === correctUsername && password === correctPassword) {
+      alert("Access granted!");
+    } else {
+      alert("Access denied!");
+      location.reload();
+    }
+    function updateTime() {
+      const now = new Date();
+      document.getElementById("time").innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function fetchStat(id, type) {
+      fetch(`/stat?type=${type}`)
+        .then((res) => res.text())
+        .then((txt) => {
+          document.getElementById(id).innerText = txt || "unknown";
+        })
+        .catch(() => {
+          document.getElementById(id).innerText = "error";
+        });
+    }
+
+    const stats = [
+      ["cpuTemp", "temp"],
+      ["cpuModel", "cpu"],
+      ["localIp", "ip_local"],
+      ["publicIp", "ip_public"],
+      ["ram", "ram"],
+      ["disk", "disk"],
+      ["uptime", "uptime"],
+      ["user", "user"],
+    ];
+
+    stats.forEach(([id, type]) => fetchStat(id, type));
+  </script>
+  <script>
+  function submitProgress() {
+    const text = document.getElementById("progressInput").value.trim();
+    const status = document.getElementById("progressStatus");
+
+    if (!text) {
+      status.innerText = "Please enter some text.";
+      return;
+    }
+
+    fetch("/progress", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: text
+    })
+    .then(res => {
+      if (res.ok) {
+        status.innerText = "✅ Saved!";
+        document.getElementById("progressInput").value = "";
+      } else {
+        status.innerText = "❌ Error saving.";
+      }
+    })
+    .catch(() => {
+      status.innerText = "❌ Network error.";
+    });
+  }
+</script>
+
+</body>
+</html>
