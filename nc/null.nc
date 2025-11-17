@@ -17,6 +17,11 @@ void print_ascci_art() {
 }
 
 int main() {
+
+  const char *home = getenv("HOME");
+
+  if (!home) return 1;
+
 	char command[256];
 	char cwd[PATH_MAX];
 
@@ -193,7 +198,19 @@ int main() {
     }
   }
   else if (strcmp(command, "dev_mode") == 0) {
+    char cache_path[256];
+    char mode_path[256];
+    snprintf(cache_path, sizeof(cache_path), "%s/.null/cache/dev_mode.cache", home);
     sys("~/.null/nc/dev_mode");
+    FILE *file = fopen(cache_path, "r");
+    if (!file) return 1;
+    fin(file, "PATH >> %s", mode_path);
+    fclose(file);
+    if (chdir(mode_path) != 0) {
+      perror("chdir");
+      return 1;
+    }
+    sys("nano todo.json");
   }
 
 
