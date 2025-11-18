@@ -69,7 +69,7 @@ int main() {
 	}
 
 	else if (strcmp(command, "help") == 0) {
-		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] rpg      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] apt_update\n[18] cp      [19] apt_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n\n");
+		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] rpg      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] apt_update\n[18] cp      [19] apt_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim\n\n");
 	}
 
 	else if (strcmp(command, "rpg") == 0) { 
@@ -200,7 +200,7 @@ int main() {
   else if (strcmp(command, "dev_mode") == 0) {
     char cache_path[256];
     char mode_path[256];
-    snprintf(cache_path, sizeof(cache_path), "%s/.null/cache/dev_mode.cache", home);
+    string(cache_path, sizeof(cache_path), "%s/.null/cache/dev_mode.cache", home);
     sys("~/.null/nc/dev_mode");
     FILE *file = fopen(cache_path, "r");
     if (!file) return 1;
@@ -211,6 +211,14 @@ int main() {
       return 1;
     }
     sys("nano todo.json");
+  }
+  else if (strcmp(command, "nvim") == 0) {
+    char filename[256];
+    char command1[256];
+    out("\n[-] File name >> ");
+    in("%255s", filename);
+    string(command1, sizeof(command1), "nvim %s", filename);
+    sys(command1);
   }
 
 
