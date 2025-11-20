@@ -69,7 +69,7 @@ int main() {
 	}
 
 	else if (strcmp(command, "help") == 0) {
-		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] rpg      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] apt_update\n[18] cp      [19] apt_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n\n");
+		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n\n");
 	}
 
 	else if (strcmp(command, "rpg") == 0) { 
