@@ -69,7 +69,7 @@ int main() {
 	}
 
 	else if (strcmp(command, "help") == 0) {
-		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n\n");
+		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n[28] ascii\n\n");
 	}
 
 	else if (strcmp(command, "rpg") == 0) { 
@@ -228,7 +228,15 @@ int main() {
     string(command1, sizeof(command1), "idek %s", filename);
     sys(command1);
   }
-
+  else if (strcmp(command, "ascii") == 0) {
+    char text[512];
+    char command1[256];
+    out("\n[-] Text >> ");
+    in("%511s", text);
+    string(command1, sizeof(command1), "figlet %s", text);
+    sys(command1);
+  }
+  
 
 
 

@@ -19,6 +19,7 @@ if [ "$distro" = "debian" ]; then
   sudo apt install -y sl
   sudo apt install -y tigervnc-viewer
   sudo apt install -y ssh
+  sudo apt install -y figlet
 elif [ "$distro" = "arch" ]; then
   sudo pacman -Syu --noconfirm
   sudo pacman -S --noconfirm git
@@ -28,17 +29,40 @@ elif [ "$distro" = "arch" ]; then
   sudo pacman -S --noconfirm sl
   sudo pacman -S --noconfirm tigervnc-viewer
   sudo pacman -S --noconfirm ssh
+  sudo pacman -S --noconfirm figlet
 fi
 
 echo "[+] cloning the null to ~/.null"
 mkdir ~/.null
 git clone https://github.com/Preclik02/null.git ~/.null
+
+echo "[-] Do you want to compile everything y/N (you will need nullc installed for it to work) >> "
+read compile
+
+if [ "$compile" = "y" ]; then
+  nullc ~/.null/nc/apps
+  nullc ~/.null/nc/dos
+  nullc ~/.null/nc/null
+  nullc ~/.null/nc/dos_s
+  nullc ~/.null/nc/port_scan
+  nullc ~/.null/nc/oom
+  nullc ~/.null/nc/ssh_connect
+  nullc ~/.null/nc/vnc_connect
+  nullc ~/.null/nc/server
+  nullc ~/.null/nc/dev_mode
+  nullc ~/.null/nc/todo
+  nullc ~/.null/nc/idek
+fi
+else
+  echo "[+] Okay"
+fi
+
 chmod +x ~/.null/nc/apps
 chmod +x ~/.null/nc/dos
 chmod +x ~/.null/nc/null
 chmod +x ~/.null/nc/dos_s
 chmod +x ~/.null/nc/port_scan
-chmod +x ~/.null/nc/rpg
+chmod +x ~/.null/nc/oom
 chmod +x ~/.null/nc/ssh_connect
 chmod +x ~/.null/nc/vnc_connect
 chmod +x ~/.null/nc/server
