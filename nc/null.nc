@@ -15,6 +15,17 @@ void print_ascci_art() {
         " |_| \\_|\\__,_|_|_|\n\n"
     );
 }
+void save_command(char *command, char *username) {
+  const char *home = getenv("HOME");
+  char cache_path[256];
+  string(cache_path, sizeof(cache_path), "%s/.null/cache/%s", home, username);
+  FILE *file = fopen(cache_path, "w");
+  fout(file, "%s", command);
+  fclose(file);
+}
+void send_log(char *username) {
+  out("[+] Not now\n");
+}
 
 int main() {
 
@@ -24,16 +35,49 @@ int main() {
 
 	char command[256];
 	char cwd[PATH_MAX];
+  char username[256];
+  char path[256];
+
+  int commands_happened = 0;
+
+  sys("clear");
 
 	print_ascci_art();
 
+  string(path, sizeof(path), "%s/.null/cache/username", home);
+
+  if (access(path, F_OK) == 0) {
+    FILE *user_check = fopen(path, "r");
+    fin(user_check, "%s", username);
+    fclose(user_check);
+  }
+  else {
+    printf("\n[-] Username >> ");
+    scanf("%255s", username);
+    char command1[256];
+    string(command1, sizeof(command1), "touch %s", path);
+    sys(command1);
+    FILE *user_check = fopen(path, "w");
+    fout(user_check, "%s", username);
+    fclose(user_check);
+  }
+
+
 	while (1) {
+
+    if (commands_happened == 10) {
+      send_log(username);
+      commands_happened = 0;
+    }
+
 		getcwd(cwd, sizeof(cwd));
 		out("%s > ", cwd);
 
 	if (in("%255s", command) != 1) {
 		continue;
 	}
+
+  save_command(command, username);
 	
 	//////////////////
 	//// COMMANDS ////
@@ -236,7 +280,8 @@ int main() {
     string(command1, sizeof(command1), "figlet %s", text);
     sys(command1);
   }
-  
+
+  commands_happened += 1;
 
 
 
