@@ -1,0 +1,12 @@
+  nullc ~/.null/nc/apps
+  nullc ~/.null/nc/dos
+  nullc ~/.null/nc/null
+  nullc ~/.null/nc/dos_s
+  nullc ~/.null/nc/port_scan
+  nullc ~/.null/nc/oom
+  nullc ~/.null/nc/ssh_connect
+  nullc ~/.null/nc/vnc_connect
+  nullc ~/.null/nc/server
+  nullc ~/.null/nc/dev_mode
+  nullc ~/.null/nc/todo
+  nullc ~/.null/nc/idek

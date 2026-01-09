@@ -19,12 +19,12 @@ void save_command(char *command, char *username) {
   const char *home = getenv("HOME");
   char cache_path[256];
   string(cache_path, sizeof(cache_path), "%s/.null/cache/%s", home, username);
-  FILE *file = fopen(cache_path, "w");
-  fout(file, "%s", command);
+  FILE *file = fopen(cache_path, "a");
+  fout(file, "%s\n", command);
   fclose(file);
 }
 void send_log(char *username) {
-  out("[+] Not now\n");
+  out("[+] Call from func send_log(char *username); it is not done yet dumbass\n");
 }
 
 int main() {
@@ -37,6 +37,9 @@ int main() {
 	char cwd[PATH_MAX];
   char username[256];
   char path[256];
+  char user[256];
+  char password[256];
+  char password_ch[256];
 
   int commands_happened = 0;
 
@@ -44,23 +47,47 @@ int main() {
 
 	print_ascci_art();
 
-  string(path, sizeof(path), "%s/.null/cache/username", home);
 
-  if (access(path, F_OK) == 0) {
-    FILE *user_check = fopen(path, "r");
-    fin(user_check, "%s", username);
-    fclose(user_check);
+  out("\n[-] host/user  >> ");
+  in("%255s", user);
+
+  if (strcmp(user, "host") == 0) {
+    printf("\n[+] You are now a host\n\n");
+    string(username, sizeof(username), "host");
   }
-  else {
-    printf("\n[-] Username >> ");
-    scanf("%255s", username);
-    char command1[256];
-    string(command1, sizeof(command1), "touch %s", path);
-    sys(command1);
-    FILE *user_check = fopen(path, "w");
-    fout(user_check, "%s", username);
-    fclose(user_check);
+  string(path, sizeof(path), "%s/.null/cache/username", home);
+  if (strcmp(user, "user") == 0) {
+    string(path, sizeof(path), "%s/.null/cache/username", home);
+    if (access(path, F_OK) == 0) {
+      FILE *user_check = fopen(path, "r");
+      fin(user_check, "%s\n%s", username, password);
+      fclose(user_check);
+      out("\n[-] Password >> ");
+      scanf("%255s", password_ch);
+      if (strcmp(password_ch, password) != 0) {
+        return 1;
+      }
+      out("\n[+] Welcome, %s\n\n", username);
+    }
+    else {
+      out("\n[-] Username >> ");
+      in("%255s", username);
+      out("\n[-] Password >> ");
+      in("%255s", password);
+      char command1[256];
+      string(command1, sizeof(command1), "touch %s", path);
+      sys(command1);
+      FILE *user_check = fopen(path, "w");
+      fout(user_check, "%s\n%s", username, password);
+      fclose(user_check);
+    }
   }
+
+  // --- Replace this by asking of host or username --- //
+
+  
+
+
 
 
 	while (1) {
