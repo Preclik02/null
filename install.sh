@@ -20,6 +20,7 @@ if [ "$distro" = "debian" ]; then
   sudo apt install -y tigervnc-viewer
   sudo apt install -y ssh
   sudo apt install -y figlet
+  sudo apt install -y sshfs
 elif [ "$distro" = "arch" ]; then
   sudo pacman -Syu --noconfirm
   sudo pacman -S --noconfirm git
@@ -30,6 +31,7 @@ elif [ "$distro" = "arch" ]; then
   sudo pacman -S --noconfirm tigervnc-viewer
   sudo pacman -S --noconfirm ssh
   sudo pacman -S --noconfirm figlet
+  sudo pacman -S --noconfirm sshfs
 fi
 
 echo "[+] cloning the null to ~/.null"
