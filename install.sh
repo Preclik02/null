@@ -70,6 +70,8 @@ chmod +x ~/.null/nc/dev_mode
 chmod +x ~/.null/nc/todo
 chmod +x ~/.null/nc/idek
 
+mkdir ~/.null/cache/ssh
+
 echo "[+] adding the null to path"
 
 if [ "$terminal" = "bash" ]; then
