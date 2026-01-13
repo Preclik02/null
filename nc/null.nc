@@ -4,6 +4,17 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <signal.h>
+
+
+
+volatile sig_atomic_t stop = 0;
+
+////////////////////////
+///                  ///
+/// --- Function --- ///
+///                  ///
+////////////////////////
 
 void print_ascci_art() {
     out(
@@ -15,6 +26,9 @@ void print_ascci_art() {
         " |_| \\_|\\__,_|_|_|\n\n"
     );
 }
+void handle_sigint(int sig) {
+  stop = 1;
+}
 void save_command(char *command, char *username) {
   const char *home = getenv("HOME");
   char cache_path[256];
@@ -23,11 +37,21 @@ void save_command(char *command, char *username) {
   fout(file, "%s\n", command);
   fclose(file);
 }
-void send_log(char *username) {
-  out("[+] Call from func send_log(char *username); it is not done yet dumbass\n");
+void send_log(char *username, char *server) {
+  const char *home = getenv("HOME");
+  char command[256];
+  string(command, sizeof(command), "cp %s/.null/cache/%s %s/.null/cache/ssh/%s", home, username, home, username);
+  sys(command);
 }
 
+/////////////////////////////
+///                       ///
+/// --- Main function --- ///
+///                       ///
+/////////////////////////////
+
 int main() {
+  signal(SIGINT, handle_sigint);
 
   const char *home = getenv("HOME");
 
@@ -40,6 +64,7 @@ int main() {
   char user[256];
   char password[256];
   char password_ch[256];
+  char server[256];
 
   int commands_happened = 0;
 
@@ -47,6 +72,21 @@ int main() {
 
 	print_ascci_art();
 
+  out("\n[+] Server should be setted like this username@ip:/folder/");
+  string(path, sizeof(path), "%s/.null/cache/server", home);
+  if (access(path, F_OK) == 0) {
+    FILE *file = fopen(path, "r");
+    fin(file, "%s", server);
+    fclose(file);
+    out("[+] Sending logs to server %s", server);
+  }
+  else {
+    out("\n[+] Send logs to >> ");
+    in("%255s", server);
+    FILE *file = fopen(path, "w");
+    fout(file, "%s", server);
+    fclose(file);
+  }
 
   out("\n[-] host/user  >> ");
   in("%255s", user);
@@ -83,17 +123,13 @@ int main() {
     }
   }
 
-  // --- Replace this by asking of host or username --- //
+  string(command, sizeof(command), "sshfs %s %s/.null/cache/ssh", server, home);
+  sys(command);
 
-  
-
-
-
-
-	while (1) {
+	while (!stop) {
 
     if (commands_happened == 10) {
-      send_log(username);
+      send_log(username, server);
       commands_happened = 0;
     }
 
@@ -310,9 +346,11 @@ int main() {
 
   commands_happened += 1;
 
-
-
-
 	}
+
+  out("\n[+] Unmounting ssh . . .");
+  string(command, sizeof(command), "fusermount -u %s/.null/cache/ssh", home);
+  sys(command);
+
 	return 0;
 }
