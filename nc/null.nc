@@ -65,28 +65,82 @@ int main() {
   char password[256];
   char password_ch[256];
   char server[256];
+  char check[256];
 
   int commands_happened = 0;
+
+  ///////////////////////
+  //                   //
+  // -- ALL CONFIGS -- //
+  //                   //
+  ///////////////////////
+
+  char server_send[256];
+
+
+
+
+
+  // --- END OF CONFIGS --- //
 
   sys("clear");
 
 	print_ascci_art();
 
-  out("\n[+] Server should be setted like this username@ip:/folder/");
-  string(path, sizeof(path), "%s/.null/cache/server", home);
+
+  string(path, sizeof(path), "%s/.null/cache/null.conf", home);
   if (access(path, F_OK) == 0) {
     FILE *file = fopen(path, "r");
-    fin(file, "%s", server);
+    fin(file, "server_send=%s", server_send);
     fclose(file);
-    out("[+] Sending logs to server %s", server);
   }
   else {
-    out("\n[+] Send logs to >> ");
-    in("%255s", server);
-    FILE *file = fopen(path, "w");
-    fout(file, "%s", server);
-    fclose(file);
+    out("\n[+] Do you want to send logs with sshfs (y/n) >> ");
+    in("%255s", check);
+    if (strcmp(check, "y") == 0) {
+      string(server_send, sizeof(server_send), "y");
+      FILE *file = fopen(path, "w");
+      fout(file, "server_send=%s", server_send);
+      fclose(file);
+    }
+    else if (strcmp(check, "n") == 0) {
+      string(server_send, sizeof(server_send), "n");
+      FILE *file = fopen(path, "w");
+      fout(file, "server_send=%s", server_send);
+      fclose(file);
+    }
   }
+
+
+
+  if (strcmp(server_send, "y") == 0) {
+    out("\n[+] Server should be setted like this username@ip:/folder/");
+    string(path, sizeof(path), "%s/.null/cache/server", home);
+    if (access(path, F_OK) == 0) {
+      FILE *file = fopen(path, "r");
+      fin(file, "%s", server);
+      fclose(file);
+      out("\n[+] Sending logs to server %s\n", server);
+    }
+    else {
+      out("\n[-] Send logs to >> ");
+      in("%255s", server);
+      FILE *file = fopen(path, "w");
+      fout(file, "%s", server);
+      fclose(file);
+    }
+  }
+  else if (strcmp(server_send, "n") == 0) {
+    out("\n[+] Server sending is off");
+  }
+  else {
+    out("\n[+] The config file has un readable \"server_send\"\n\n");
+    return 1;
+  }
+
+
+
+
 
   out("\n[-] host/user  >> ");
   in("%255s", user);
@@ -103,7 +157,7 @@ int main() {
       fin(user_check, "%s\n%s", username, password);
       fclose(user_check);
       out("\n[-] Password >> ");
-      scanf("%255s", password_ch);
+      in("%255s", password_ch);
       if (strcmp(password_ch, password) != 0) {
         return 1;
       }
@@ -123,14 +177,17 @@ int main() {
     }
   }
 
-  string(command, sizeof(command), "sshfs %s %s/.null/cache/ssh", server, home);
-  sys(command);
+  if (strcmp(server_send, "y") == 0) {
+    string(command, sizeof(command), "sshfs %s %s/.null/cache/ssh", server, home);
+    sys(command);
+  }
 
 	while (!stop) {
-
-    if (commands_happened == 10) {
-      send_log(username, server);
-      commands_happened = 0;
+    if (strcmp(server_send, "y") == 0) {
+      if (commands_happened == 10) {
+        send_log(username, server);
+        commands_happened = 0;
+      }
     }
 
 		getcwd(cwd, sizeof(cwd));
@@ -347,10 +404,11 @@ int main() {
   commands_happened += 1;
 
 	}
-
-  out("\n[+] Unmounting ssh . . .");
-  string(command, sizeof(command), "fusermount -u %s/.null/cache/ssh", home);
-  sys(command);
+  if (strcmp(server_send, "y") == 0) {
+    out("\n[+] Unmounting ssh . . .\n\n");
+    string(command, sizeof(command), "fusermount -u %s/.null/cache/ssh", home);
+    sys(command);
+  }
 
 	return 0;
 }
