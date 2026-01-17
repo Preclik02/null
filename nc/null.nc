@@ -233,7 +233,7 @@ int main() {
 	}
 
 	else if (strcmp(command, "help") == 0) {
-		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n[28] ascii\n\n");
+		out("\n[0] quit     [1] cls\n[2] color    [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n[28] ascii    [29] unmount\n\n");
 	}
 
 	else if (strcmp(command, "oom") == 0) {
@@ -400,9 +400,23 @@ int main() {
     string(command1, sizeof(command1), "figlet %s", text);
     sys(command1);
   }
+  else if (strcmp(command, "unmount") == 0) {
+    char command1[256];
+    string (command1, sizeof(command1), "fusermount -u %s/.null/cache/ssh", home);
+    sys(command1);
+  }
+  else if (strcmp(command, "mount") == 0) {
+    char command1[256];
+    string (command1, sizeof(command1), "sshfs %s %s/.null/cache/ssh", server, home);
+    sys(command1);
+  }
+
+
+
+
+
 
   commands_happened += 1;
-
 	}
   if (strcmp(server_send, "y") == 0) {
     out("\n[+] Unmounting ssh . . .\n\n");
