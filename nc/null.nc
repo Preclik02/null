@@ -68,6 +68,7 @@ int main() {
   char check[256];
 
   int commands_happened = 0;
+  int sending_file = 0;
 
   ///////////////////////
   //                   //
@@ -85,8 +86,19 @@ int main() {
 
   sys("clear");
 
-	print_ascci_art();
+  print_ascci_art();
 
+  string(path, sizeof(path), "%s/.null/cache/achievements", home);
+  if (access(path, F_OK) == 0) {
+    FILE *file = fopen(path, "r");
+    fin(file, "commands_happened --> %s", commands_happened);
+    fclose(file);
+  }
+  else {
+    FILE *file = fopen(path, "w");
+    fout(file, "commands_happened --> %s", commands_happened);
+    fclose(file);
+  }
 
   string(path, sizeof(path), "%s/.null/cache/null.conf", home);
   if (access(path, F_OK) == 0) {
@@ -184,10 +196,14 @@ int main() {
 
 	while (!stop) {
     if (strcmp(server_send, "y") == 0) {
-      if (commands_happened == 10) {
+      if (sending_file == 10) {
         send_log(username, server);
-        commands_happened = 0;
+        sending_file = 0;
       }
+      if (commands_happened == 1000) {
+        out("\n[+] You reached 1k commands used... Thanks for using null");
+      }
+      
     }
 
 		getcwd(cwd, sizeof(cwd));
@@ -203,6 +219,10 @@ int main() {
 	//// COMMANDS ////
 	//////////////////
 	if (strcmp(command, "quit") == 0) {
+		string(path, sizeof(path), "%s/.null/cache/achievements", home);
+		FILE *file = fopen(path, "w");
+		fout(file, "commands_happened --> %d", commands_happened);
+		fclose(file);
 		break;
 	}
 
@@ -428,12 +448,17 @@ int main() {
 
 
   commands_happened += 1;
+  sending_file += 1;
 	}
   if (strcmp(server_send, "y") == 0) {
     out("\n[+] Unmounting ssh . . .\n\n");
     string(command, sizeof(command), "fusermount -u %s/.null/cache/ssh", home);
     sys(command);
   }
+  string(path, sizeof(path), "%s/.null/cache/achievements", home);
+  FILE *file = fopen(path, "w");
+  fout(file, "commands_happened --> %d", commands_happened);
+  fclose(file);
 
 	return 0;
 }
