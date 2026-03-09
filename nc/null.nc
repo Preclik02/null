@@ -91,12 +91,12 @@ int main() {
   string(path, sizeof(path), "%s/.null/cache/achievements", home);
   if (access(path, F_OK) == 0) {
     FILE *file = fopen(path, "r");
-    fin(file, "commands_happened --> %s", commands_happened);
+    fin(file, "commands_happened --> %d", &commands_happened);
     fclose(file);
   }
   else {
     FILE *file = fopen(path, "w");
-    fout(file, "commands_happened --> %s", commands_happened);
+    fout(file, "commands_happened --> %d", commands_happened);
     fclose(file);
   }
 
@@ -249,7 +249,7 @@ int main() {
 	}
 
 	else if (strcmp(command, "help") == 0) {
-		out("\n[0] quit     [1] cls\n[2] red      [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n[28] ascii   [29] unmount\n[30] green   [31] blue\n[33] white   [34] purple\n\n");
+		out("\n[0] quit     [1] cls\n[2] red      [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n[28] ascii   [29] unmount\n[30] green   [31] blue\n[33] white   [34] purple\n[35] config\n\n");
 	}
 
 	else if (strcmp(command, "oom") == 0) {
@@ -441,6 +441,12 @@ int main() {
   else if (strcmp(command, "purple") == 0) {
     sys("printf \"\\033[0;35m\"");
   }
+	else if (strcmp(command, "config") == 0) {
+		const char *home = getenv("HOME");
+		char command1[500];
+		string(command1, sizeof(command1), "idek %s/.null/cache/null.conf", home);
+		sys(command1);
+	}
 
 
 

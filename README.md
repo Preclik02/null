@@ -7,3 +7,10 @@ If you want manual install than make sure all of the files and directories exist
 
 
 *notes* --> If you are not installing with install.sh than make directory ~/.null/cache/ssh. Null also saves your commands into a filename of your username in cache folder and sends them to setted sshfs server YOU SET.
+If you are having issues installing or using null re-installing it will usually help fixing any problem.
+If you are wondering why the Ctrl+c won't kill the program I still haven't found solution for it just press random key and enter and it will exit how it should.
+
+
+
+
+
