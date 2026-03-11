@@ -379,13 +379,33 @@ int main() {
   }
   else if (strcmp(command, "dev_mode") == 0) {
     char cache_path[256];
-    char mode_path[256];
+		char c_mode_path[256];
+		char py_mode_path[256];
+		char asm_mode_path[256];
+		char mode_path[256];
+    int selected_mode;	
     string(cache_path, sizeof(cache_path), "%s/.null/cache/dev_mode.cache", home);
     sys("~/.null/nc/dev_mode");
     FILE *file = fopen(cache_path, "r");
     if (!file) return 1;
-    fin(file, "PATH >> %s", mode_path);
+    fin(file, "selected_mode >> %d", &selected_mode);
+		fin(file, "\nc_mode_path >> %s", c_mode_path);
+		fin(file, "\npy_mode_path >> %s", py_mode_path);
+		fin(file, "\nasm_mode_path >> %s", asm_mode_path);
     fclose(file);
+		if (selected_mode == 0) {
+			string(mode_path, sizeof(mode_path), "%s", c_mode_path);
+		}
+		else if (selected_mode == 1) {
+			string(mode_path, sizeof(mode_path), "%s", py_mode_path);
+		}
+		else if (selected_mode == 2) {
+			string(mode_path, sizeof(mode_path), "%s", asm_mode_path);
+		}
+		else {
+			out("\n[+] Something went wrong . . . ");
+			return 1;
+		}
     if (chdir(mode_path) != 0) {
       perror("chdir");
       return 1;
