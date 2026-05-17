@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <stdbool.h>
 
 
 
@@ -43,6 +44,31 @@ void send_log(char *username, char *server) {
   string(command, sizeof(command), "cp %s/.null/cache/%s %s/.null/cache/ssh/%s", home, username, home, username);
   sys(command);
 }
+bool check_user(char *user) {
+  const char *home = getenv("HOME");
+  char path[256];
+  char line[256];
+
+  snprintf(path, sizeof(path), "%s/.null/cache/users", home);
+
+  FILE *file = fopen(path, "r");
+  if (!file) {
+    return false;
+  }
+
+  while (fgets(line, sizeof(line), file)) {
+    line[strcspn(line, "\n")] = '\0';
+
+    if (strcmp(line, user) == 0) {
+      fclose(file);
+      return true;
+    }
+  }
+
+  fclose(file);
+  return false;
+}
+
 
 /////////////////////////////
 ///                       ///
@@ -57,8 +83,8 @@ int main() {
 
   if (!home) return 1;
 
-	char command[256];
 	char cwd[PATH_MAX];
+  char command[256];
   char username[256];
   char path[256];
   char user[256];
@@ -77,10 +103,6 @@ int main() {
   ///////////////////////
 
   char server_send[256];
-
-
-
-
 
   // --- END OF CONFIGS --- //
 
@@ -150,49 +172,88 @@ int main() {
     return 1;
   }
 
-
-
-
-
-  out("\n[-] host/user  >> ");
+  out("\n[-] username  >> ");
   in("%255s", user);
 
-  if (strcmp(user, "host") == 0) {
-    printf("\n[+] You are now a host\n\n");
-    string(username, sizeof(username), "host");
-  }
-  string(path, sizeof(path), "%s/.null/cache/username", home);
-  if (strcmp(user, "user") == 0) {
-    string(path, sizeof(path), "%s/.null/cache/username", home);
-    if (access(path, F_OK) == 0) {
-      FILE *user_check = fopen(path, "r");
-      fin(user_check, "%s\n%s", username, password);
-      fclose(user_check);
-      out("\n[-] Password >> ");
-      in("%255s", password_ch);
-      if (strcmp(password_ch, password) != 0) {
-        return 1;
-      }
-      out("\n[+] Welcome, %s\n\n", username);
+  if (check_user(user)) {
+    out("\n[-] Password >> ");
+    in("%255s", password);
+    string(path, sizeof(path), "%s/.null/cache/%s_cred", home, user);
+    FILE *file = fopen(path, "r");
+    fin(file, "%s\n%s", user, password_ch);
+    if (strcmp(password_ch, password) != 0) {
+      return 1;
     }
-    else {
-      out("\n[-] Username >> ");
-      in("%255s", username);
+    string(username, sizeof(username), "%s", user);
+    out("\n[+] Welcome, %s\n\n", username); 
+  }
+  else {
+    char check[256];
+    out("\n[-] create (new user)/host >> ");
+    in("%255s", check);
+    if (strcmp(check, "create") == 0) {
       out("\n[-] Password >> ");
       in("%255s", password);
-      char command1[256];
-      string(command1, sizeof(command1), "touch %s", path);
-      sys(command1);
-      FILE *user_check = fopen(path, "w");
-      fout(user_check, "%s\n%s", username, password);
-      fclose(user_check);
+      string(path, sizeof(path), "%s/.null/cache/%s_cred", home, user);
+      FILE *file = fopen(path, "w");
+      fout(file, "%s\n%s", user, password);
+      fclose(file);
+      string(path, sizeof(path), "%s/.null/cache/users", home);
+      file = fopen(path, "a");
+      fout(file, "%s\n", user);
+      fclose(file);
+      string(username, sizeof(username), "%s", user);
     }
+    else if (strcmp(check, "host") == 0) {
+      printf("\n[+] You are host");
+      string(username, sizeof(username), "host");
+    }
+
+    //out("\n[+] You are now a host\n\n");
+    //string(username, sizeof(username), "host");
   }
+
+
+
+
+
+
+
+
+//  string(path, sizeof(path), "%s/.null/cache/username", home);
+//  if (strcmp(user, "user") == 0) {
+//    string(path, sizeof(path), "%s/.null/cache/username", home);
+//    if (access(path, F_OK) == 0) {
+//      FILE *user_check = fopen(path, "r");
+//      fin(user_check, "%s\n%s", username, password);
+//      fclose(user_check);
+//      out("\n[-] Password >> ");
+//      in("%255s", password_ch);
+//      if (strcmp(password_ch, password) != 0) {
+//        return 1;
+//      }
+//      out("\n[+] Welcome, %s\n\n", username);
+//    }
+//    else {
+//      out("\n[-] Username >> ");
+//      in("%255s", username);
+//      out("\n[-] Password >> ");
+//      in("%255s", password);
+//      char command1[256];
+//      string(command1, sizeof(command1), "touch %s", path);
+//      sys(command1);
+//      FILE *user_check = fopen(path, "w");
+//      fout(user_check, "%s\n%s", username, password);
+//      fclose(user_check);
+//    }
+//  }
 
   if (strcmp(server_send, "y") == 0) {
     string(command, sizeof(command), "sshfs %s %s/.null/cache/ssh", server, home);
     sys(command);
   }
+
+  // --- MAIN LOOP --- //
 
 	while (!stop) {
     if (strcmp(server_send, "y") == 0) {
@@ -218,6 +279,7 @@ int main() {
 	//////////////////
 	//// COMMANDS ////
 	//////////////////
+  
 	if (strcmp(command, "quit") == 0) {
 		string(path, sizeof(path), "%s/.null/cache/achievements", home);
 		FILE *file = fopen(path, "w");
@@ -249,7 +311,25 @@ int main() {
 	}
 
 	else if (strcmp(command, "help") == 0) {
-		out("\n[0] quit     [1] cls\n[2] red      [3] cd\n[4] mkdir    [5] help\n[6] oom      [7] ls\n[8] touch    [9] explorer\n[10] rm      [11] shutdown\n[12] ./      [13] ssh\n[14] vnc     [15] sl\n[16] apps    [17] pkg_update\n[18] cp      [19] pkg_install\n[20] port    [21] neofetch\n[22] chmod   [23] dos\n[24] server  [25] dev_mode\n[26] nvim    [27] idek\n[28] ascii   [29] unmount\n[30] green   [31] blue\n[33] white   [34] purple\n[35] config\n\n");
+		out("\n[0] quit     [1] cls"
+        "\n[2] red      [3] cd"
+        "\n[4] mkdir    [5] help"
+        "\n[6] oom      [7] ls"
+        "\n[8] touch    [9] explorer"
+        "\n[10] rm      [11] shutdown"
+        "\n[12] ./      [13] ssh"
+        "\n[14] vnc     [15] sl"
+        "\n[16] apps    [17] pkg_update"
+        "\n[18] cp      [19] pkg_install"
+        "\n[20] port    [21] neofetch"
+        "\n[22] chmod   [23] dos"
+        "\n[24] server  [25] dev_mode"
+        "\n[26] nvim    [27] idek"
+        "\n[28] ascii   [29] unmount"
+        "\n[30] green   [31] blue"
+        "\n[33] white   [34] purple"
+        "\n[35] config\n\n"
+    );
 	}
 
 	else if (strcmp(command, "oom") == 0) {
