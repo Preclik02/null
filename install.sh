@@ -1,85 +1,46 @@
 #!/bin/bash
 
-echo "what distro do you use (debian/arch)"
-read distro
-echo "what is you terminal (zsh/bash)"
-read terminal
+# --- Environment Constants ---
+TARGET_USER="jaylub"
+USER_HOME="/home/${TARGET_USER}"
 
-echo "[+] trigering sudo . . ."
-sudo -v
+echo "[+] Customizing environment for ${TARGET_USER}..."
 
-echo "[+] installing packages for null to work"
+echo "[+] Updating system and installing required tools..."
+pacman -Syu --noconfirm git masscan gcc neofetch sl tigervnc-viewer openssh figlet sshfs
 
-if [ "$distro" = "debian" ]; then
-  sudo apt update
-  sudo apt install -y git
-  sudo apt install -y masscan
-  sudo apt install -y gcc
-  sudo apt install -y neofetch
-  sudo apt install -y sl
-  sudo apt install -y tigervnc-viewer
-  sudo apt install -y ssh
-  sudo apt install -y figlet
-  sudo apt install -y sshfs
-elif [ "$distro" = "arch" ]; then
-  sudo pacman -Syu --noconfirm
-  sudo pacman -S --noconfirm git
-  sudo pacman -S --noconfirm masscan
-  sudo pacman -S --noconfirm gcc
-  sudo pacman -S --noconfirm neofetch
-  sudo pacman -S --noconfirm sl
-  sudo pacman -S --noconfirm tigervnc-viewer
-  sudo pacman -S --noconfirm ssh
-  sudo pacman -S --noconfirm figlet
-  sudo pacman -S --noconfirm sshfs
-fi
+echo "[+] Creating clean structure..."
+mkdir -p "${USER_HOME}/.null/nc"
+mkdir -p "${USER_HOME}/.null/cache/ssh"
 
-echo "[+] cloning the null to ~/.null"
-mkdir ~/.null
-git clone https://github.com/Preclik02/null.git ~/.null
+echo "[+] Downloading environment configurations..."
+git clone https://github.com/Preclik02/null.git "${USER_HOME}/.null_repo"
 
-echo "[-] Do you want to compile everything y/N (you will need nullc installed for it to work) >> "
-read compile
+# Move the text files and configurations to the active directory structure
+cp -r "${USER_HOME}/.null_repo/"* "${USER_HOME}/.null/"
+rm -rf "${USER_HOME}/.null_repo"
 
-if [ "$compile" = "y" ]; then
-  nullc ~/.null/nc/apps
-  nullc ~/.null/nc/dos
-  nullc ~/.null/nc/null
-  nullc ~/.null/nc/dos_s
-  nullc ~/.null/nc/port_scan
-  nullc ~/.null/nc/oom
-  nullc ~/.null/nc/ssh_connect
-  nullc ~/.null/nc/vnc_connect
-  nullc ~/.null/nc/server
-  nullc ~/.null/nc/dev_mode
-  nullc ~/.null/nc/todo
-  nullc ~/.null/nc/idek
-fi
-else
-  echo "[+] Okay"
-fi
+# --- Automated GCC Compilation Layer ---
+echo "[+] Compiling custom security tools with GCC..."
 
-chmod +x ~/.null/nc/apps
-chmod +x ~/.null/nc/dos
-chmod +x ~/.null/nc/null
-chmod +x ~/.null/nc/dos_s
-chmod +x ~/.null/nc/port_scan
-chmod +x ~/.null/nc/oom
-chmod +x ~/.null/nc/ssh_connect
-chmod +x ~/.null/nc/vnc_connect
-chmod +x ~/.null/nc/server
-chmod +x ~/.null/nc/dev_mode
-chmod +x ~/.null/nc/todo
-chmod +x ~/.null/nc/idek
+# This loop finds every .c file in your source directories and compiles it
+cd "${USER_HOME}/.null/nc"
+for source_file in apps dos null dos_s port_scan oom ssh_connect vnc_connect server dev_mode todo idek; do
+    if [ -f "${source_file}.c" ]; then
+        echo "    -> Compiling ${source_file}.c with GCC..."
+        gcc "${source_file}.c" -o "${source_file}"
+    elif [ -f "${source_file}" ]; then
+        echo "    -> ${source_file} is a script, skipping compilation."
+    fi
+done
 
-mkdir ~/.null/cache/ssh
+echo "[+] Adjusting executable permissions..."
+chmod +x "${USER_HOME}"/.null/nc/*
 
-echo "[+] adding the null to path"
+echo "[+] Configuring PATH variables for Zsh shell execution environment..."
+echo 'export PATH="$HOME/.null/nc:$PATH"' >> "${USER_HOME}/.zshrc"
 
-if [ "$terminal" = "bash" ]; then
-  echo 'export PATH="$HOME/.null/nc:$PATH"' >>~/.bashrc
-  echo "[+] now execute this in your terminal 'source ~/.bashrc' and restart it\n[+] than you will be able to run the null by 'null'"
-elif [ "$terminal" = "zsh" ]; then
-  echo 'export PATH="$HOME/.null/nc:$PATH"' >>~/.zshrc
-  echo "[+] now execute this in your terminal 'source ~/.zshrc' and restart it\n[+] than you will be able to run the null by 'null'"
-fi
+echo "[+] Correcting workspace file ownership permissions..."
+chown -R ${TARGET_USER}:${TARGET_USER} "${USER_HOME}"
+
+echo "[+] JayOS Secure Wrapper deployment completely optimized and operational."
