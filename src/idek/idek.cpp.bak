@@ -1,0 +1,317 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <termios.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <algorithm>
+#include <chrono>
+#include <thread>
+
+// Enum to manage our editor states
+enum EditorMode {
+    NORMAL,
+    INSERT
+};
+
+void enableRawMode(termios& orig_termios) {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    termios raw = orig_termios;
+    raw.c_lflag &= ~(ICANON | ECHO);     
+    raw.c_cc[VMIN] = 1;                  
+    raw.c_cc[VTIME] = 0;                 
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void disableRawMode(termios& orig_termios) {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+char getch() {
+    char c;
+    read(STDIN_FILENO, &c, 1);
+    return c;
+}
+
+void clearScreen() {
+    std::cout << "\033[2J\033[H";
+}
+
+void moveCursor(int row, int col) {
+    std::cout << "\033[" << (row + 1) << ";" << (col + 1) << "H";
+}
+
+void drawStatusBar(const std::string& filename, int row, int col, int totalRows, int cols, EditorMode mode) {
+    std::cout << "\033[7m"; // Invert background and foreground
+    
+    std::string modeStr = (mode == NORMAL) ? " -- NORMAL -- " : " -- INSERT -- ";
+    std::string status = modeStr + "File: " + filename + " | Ln " + std::to_string(row + 1) + ", Col " + std::to_string(col + 1);
+    std::string instructions = " Normal: [hjkl][gg][G][a:Insert][::Save&Run] | Ctrl+C:Exit ";
+    std::string fullStatus = status + instructions;
+
+    if ((int)fullStatus.size() < cols) {
+        fullStatus += std::string(cols - fullStatus.size(), ' ');
+    } else {
+        fullStatus = fullStatus.substr(0, cols);
+    }
+
+    std::cout << fullStatus;
+    std::cout << "\033[0m"; 
+}
+
+void loadFile(const std::string& filename, std::vector<std::string>& buffer) {
+    std::ifstream file(filename);
+    std::string line;
+    if (file.is_open()) {
+        while (std::getline(file, line)) {
+            buffer.push_back(line);
+        }
+        file.close();
+    }
+    if (buffer.empty()) {
+        buffer.push_back("");
+    }
+}
+
+void saveFile(const std::string& filename, const std::vector<std::string>& buffer) {
+    std::ofstream file(filename);
+    for (const auto& line : buffer) {
+        file << line << "\n";
+    }
+    file.close();
+}
+
+void compileAndRun(const std::string& filename) {
+    std::string command = "g++ \"" + filename + "\" -o temp.out && ./temp.out";
+    system(command.c_str());
+}
+
+void render(const std::vector<std::string>& buffer, int cursorRow, int cursorCol, int scrollOffset, int viewportHeight, int viewportWidth, bool blinkOn, EditorMode mode) {
+    clearScreen();
+    int endLine = std::min(scrollOffset + viewportHeight, static_cast<int>(buffer.size()));
+
+    for (int i = scrollOffset; i < endLine; ++i) {
+        std::string lineNum = std::to_string(i + 1);
+        const int lineNumWidth = 5;
+        if ((int)lineNum.size() < lineNumWidth)
+            lineNum = std::string(lineNumWidth - lineNum.size(), ' ') + lineNum;
+
+        if (i == cursorRow) {
+            std::cout << "\033[48;5;250m"; // light gray background for current line
+        }
+
+        std::cout << "\033[90m" << lineNum << " \033[0m";  
+
+        const std::string& line = buffer[i];
+        if (i == cursorRow) {
+            int len = (int)line.size();
+            if (cursorCol > len) cursorCol = len;
+            std::cout << "\033[48;5;250m\033[37m"; 
+
+            if (cursorCol > 0)
+                std::cout << line.substr(0, cursorCol);
+
+            if (cursorCol < len) {
+                if (blinkOn) {
+                    std::cout << "\033[1m\033[44m" << line[cursorCol] << "\033[0m\033[48;5;250m\033[37m";
+                } else {
+                    std::cout << line[cursorCol];
+                }
+                std::cout << line.substr(cursorCol + 1);
+            } else {
+                if (blinkOn) {
+                    std::cout << "\033[1m\033[44m_\033[0m\033[48;5;250m\033[37m";
+                } else {
+                    std::cout << " ";
+                }
+            }
+            std::cout << "\033[0m\n";
+        } else {
+            std::cout << "\033[0m" << line << "\n";
+        }
+    }
+
+    for (int i = endLine; i < scrollOffset + viewportHeight; ++i) {
+        std::string lineNum = std::to_string(i + 1);
+        const int lineNumWidth = 5;
+        if ((int)lineNum.size() < lineNumWidth)
+            lineNum = std::string(lineNumWidth - lineNum.size(), ' ') + lineNum;
+        std::cout << "\033[90m" << lineNum << " \033[0m";
+        std::cout << "\033[90m~\033[0m\n";
+    }
+
+    moveCursor(cursorRow - scrollOffset, cursorCol + 6);
+    drawStatusBar("YourFile", cursorRow, cursorCol, (int)buffer.size(), viewportWidth, mode);
+}
+
+int main() {
+    termios orig_termios;
+    enableRawMode(orig_termios);
+
+    std::cout << R"(
+ _      _      _
+(_)    | |    | |
+ _  __| | ___| | __
+| |/ _` |/ _ \ |/ /
+| | (_| |  __/   <
+|_|\__,_|\___|_|\_\
+)" << std::endl << std::endl;
+
+    std::string filename;
+    std::cout << "Filename: ";
+    std::getline(std::cin, filename);
+
+    std::vector<std::string> buffer;
+    loadFile(filename, buffer);
+
+    int row = 0;
+    int col = 0;
+    const int viewportHeight = 25;
+    const int viewportWidth = 80; 
+    int scrollOffset = 0;
+
+    EditorMode mode = NORMAL; // Default mode is Normal Mode
+    char lastChar = '\0';     // To track sequential key presses like 'gg'
+
+    bool blinkOn = true;
+    auto lastBlink = std::chrono::steady_clock::now();
+
+    render(buffer, row, col, scrollOffset, viewportHeight, viewportWidth, blinkOn, mode);
+
+    while (true) {
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::milli> diff = now - lastBlink;
+        if (diff.count() >= 500) {
+            blinkOn = !blinkOn;
+            lastBlink = now;
+            render(buffer, row, col, scrollOffset, viewportHeight, viewportWidth, blinkOn, mode);
+        }
+
+        fd_set set;
+        struct timeval timeout;
+        FD_ZERO(&set);
+        FD_SET(STDIN_FILENO, &set);
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100000; 
+
+        int rv = select(STDIN_FILENO + 1, &set, nullptr, nullptr, &timeout);
+        if (rv == -1) {
+            disableRawMode(orig_termios);
+            std::cerr << "Error reading input" << std::endl;
+            break;
+        } else if (rv == 0) {
+            continue;
+        }
+
+        char ch = getch();
+
+        // Global exit: Ctrl+C out of the program anytime
+        if (ch == 3) { 
+            clearScreen();
+            disableRawMode(orig_termios);
+            std::cout << "Editor exited without saving." << std::endl;
+            break;
+        }
+
+        if (mode == NORMAL) {
+            // --- NORMAL MODE ---
+            if (ch == 'a') {
+                mode = INSERT;
+                // Move cursor right to append, Vim-style
+                if (col < (int)buffer[row].size()) col++;
+            } 
+            else if (ch == 'h') { // Left
+                if (col > 0) col--;
+            } 
+            else if (ch == 'l') { // Right
+                if (col < (int)buffer[row].size()) col++;
+            } 
+            else if (ch == 'k') { // Up
+                if (row > 0) row--;
+            } 
+            else if (ch == 'j') { // Down
+                if (row < (int)buffer.size() - 1) row++;
+            } 
+            else if (ch == 'g') {
+                if (lastChar == 'g') { // Second 'g' pressed -> 'gg' jump to top
+                    row = 0;
+                    col = 0;
+                    lastChar = '\0';
+                } else {
+                    lastChar = 'g';
+                    continue; // Skip clearing lastChar this loop iteration
+                }
+            } 
+            else if (ch == 'G') { // Shift+G jump to bottom
+                row = (int)buffer.size() - 1;
+                col = 0;
+            } 
+            else if (ch == ':') { // Enter command sequence to save and run
+                saveFile(filename, buffer);
+                clearScreen();
+                std::cout << "Saved. Compiling...\n\n";
+                disableRawMode(orig_termios);
+                compileAndRun(filename);
+                std::cout << "\n\nDone. Press Enter to exit.\n";
+                std::cin.get();
+                break;
+            }
+            
+            if (ch != 'g') lastChar = '\0';
+
+        } else {
+            // --- INSERT MODE ---
+            if (ch == '\033') { // ESC returns to Normal Mode
+                mode = NORMAL;
+                if (col > 0) col--; // Classic Vim behavior shifts cursor left on ESC
+            } 
+            else if (ch == 127 || ch == 8) { // Backspace
+                if (col > 0) {
+                    buffer[row].erase(col - 1, 1);
+                    col--;
+                } else if (row > 0) {
+                    col = (int)buffer[row - 1].size();
+                    buffer[row - 1] += buffer[row];
+                    buffer.erase(buffer.begin() + row);
+                    row--;
+                }
+            } 
+            else if (ch == '\n' || ch == '\r') { // Enter
+                std::string newLine = buffer[row].substr(col);
+                buffer[row] = buffer[row].substr(0, col);
+                buffer.insert(buffer.begin() + row + 1, newLine);
+                row++;
+                col = 0;
+            } 
+            else if (ch == '\t') { // Tab
+                buffer[row].insert(col, "  ");
+                col += 2;
+            } 
+            else if (isprint(ch)) {
+                buffer[row].insert(buffer[row].begin() + col, ch);
+                col++;
+            }
+        }
+
+        // Clamp cursor positions safely
+        if (row < 0) row = 0;
+        if (row >= (int)buffer.size()) row = (int)buffer.size() - 1;
+        if (col < 0) col = 0;
+        if (col > (int)buffer[row].size()) col = (int)buffer[row].size();
+
+        // Adjust scroll offset 
+        int halfView = viewportHeight / 2;
+        if (row < halfView) {
+            scrollOffset = 0;
+        } else if (row > (int)buffer.size() - halfView) {
+            scrollOffset = std::max(0, (int)buffer.size() - viewportHeight);
+        } else {
+            scrollOffset = row - halfView;
+        }
+
+        render(buffer, row, col, scrollOffset, viewportHeight, viewportWidth, blinkOn, mode);
+    }
+
+    return 0;
+}
