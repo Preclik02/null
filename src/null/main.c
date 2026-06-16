@@ -4,7 +4,7 @@
 volatile sig_atomic_t stop = 0;
 char global_username[256] = "host";
 char global_cwd[PATH_MAX] = "";
-char achievements_path[1024] = "";
+char achievements_path[1024] = "/usr/local/lib/null/cache/achievements";
 int commands_happened = 0;
 
 void print_ascii_art(void) {
@@ -37,20 +37,14 @@ int main(void) {
     // Initial handler configuration
     signal(SIGINT, handle_sigint);
 
-    const char *home = getenv("HOME");
-    if (!home) return 1;
-
     char command[256];
-    char path[1024]; // Expanded buffer to completely avoid format truncation warnings
+    char path[1024]; 
     char user[256];
     char password[256];
     char password_ch[256];
 
     system("clear");
     print_ascii_art();
-
-    // Store the path globally so handle_sigint can write to it if killed out of nowhere
-    snprintf(achievements_path, sizeof(achievements_path), "%s/.null/cache/achievements", home);
 
     if (access(achievements_path, F_OK) == 0) {
         FILE *file = fopen(achievements_path, "r");
@@ -74,7 +68,7 @@ int main(void) {
     if (check_user(user)) {
         printf("\n[-] Password >> ");
         if (scanf("%255s", password) != 1) return 1;
-        snprintf(path, sizeof(path), "%s/.null/cache/%s_cred", home, user);
+        snprintf(path, sizeof(path), "/usr/local/lib/null/cache/%s_cred", user);
         FILE *file = fopen(path, "r");
         if (file) {
             if (fscanf(file, "%*s\n%255s", password_ch) != 1) {
@@ -94,13 +88,13 @@ int main(void) {
         if (strcmp(check, "create") == 0) {
             printf("\n[-] Password >> ");
             if (scanf("%255s", password) != 1) return 1;
-            snprintf(path, sizeof(path), "%s/.null/cache/%s_cred", home, user);
+            snprintf(path, sizeof(path), "/usr/local/lib/null/cache/%s_cred", user);
             FILE *file = fopen(path, "w");
             if (file) {
                 fprintf(file, "%s\n%s", user, password);
                 fclose(file);
             }
-            snprintf(path, sizeof(path), "%s/.null/cache/users", home);
+            snprintf(path, sizeof(path), "/usr/local/lib/null/cache/users");
             file = fopen(path, "a");
             if (file) {
                 fprintf(file, "%s\n", user);
@@ -132,7 +126,8 @@ int main(void) {
 
         save_command(command, global_username);
 
-        execute_command(command, home, &commands_happened);
+        // NULL_H blueprint passes NULL since commands.c ignores it now anyway
+        execute_command(command, NULL, &commands_happened);
 
         commands_happened += 1;
     }

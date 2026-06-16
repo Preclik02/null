@@ -1,46 +1,42 @@
 #!/bin/bash
 
-# --- Environment Constants ---
-TARGET_USER="jaylub"
-USER_HOME="/home/${TARGET_USER}"
+# Exit immediately if a command exits with a non-zero status
+set -e
 
-echo "[+] Customizing environment for ${TARGET_USER}..."
+# --- System Paths ---
+TARGET_DIR="/usr/local/lib/null"
+BIN_DIR="/usr/local/bin"
 
-echo "[+] Updating system and installing required tools..."
-pacman -Syu --noconfirm git masscan gcc neofetch sl tigervnc-viewer openssh figlet sshfs
+# Ensure the script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "[-] Please run as root (sudo)."
+    exit 1
+fi
 
-echo "[+] Creating clean structure..."
-mkdir -p "${USER_HOME}/.null/nc"
-mkdir -p "${USER_HOME}/.null/cache/ssh"
+# Ensure it is running on an Arch-based system
+if [ ! -f /etc/arch-release ]; then
+    echo "[-] Error: This installer is strictly optimized for Arch-based distributions."
+    exit 1
+fi
 
-echo "[+] Downloading environment configurations..."
-git clone https://github.com/Preclik02/null.git "${USER_HOME}/.null_repo"
+echo "[+] Installing core build system packages..."
+# Only installing make, sl, openssh, figlet, and sshfs now.
+pacman -Syu --needed --noconfirm make sl openssh figlet sshfs
 
-# Move the text files and configurations to the active directory structure
-cp -r "${USER_HOME}/.null_repo/"* "${USER_HOME}/.null/"
-rm -rf "${USER_HOME}/.null_repo"
+echo "[+] Cleaning up any previous installations..."
+rm -rf "${TARGET_DIR}"
 
-# --- Automated GCC Compilation Layer ---
-echo "[+] Compiling custom security tools with GCC..."
+echo "[+] Cloning the repository to system libraries..."
+git clone https://github.com/preclik02/null.git "${TARGET_DIR}"
 
-# This loop finds every .c file in your source directories and compiles it
-cd "${USER_HOME}/.null/nc"
-for source_file in apps dos null dos_s port_scan oom ssh_connect vnc_connect server dev_mode todo idek; do
-    if [ -f "${source_file}.c" ]; then
-        echo "    -> Compiling ${source_file}.c with GCC..."
-        gcc "${source_file}.c" -o "${source_file}"
-    elif [ -f "${source_file}" ]; then
-        echo "    -> ${source_file} is a script, skipping compilation."
-    fi
-done
+echo "[+] Compiling components via Makefile..."
+cd "${TARGET_DIR}/src"
+make
+
+echo "[+] Deploying binary to system path..."
+cp "${TARGET_DIR}/src/null/null" "${BIN_DIR}/"
 
 echo "[+] Adjusting executable permissions..."
-chmod +x "${USER_HOME}"/.null/nc/*
+chmod +x "${BIN_DIR}/null"
 
-echo "[+] Configuring PATH variables for Zsh shell execution environment..."
-echo 'export PATH="$HOME/.null/nc:$PATH"' >> "${USER_HOME}/.zshrc"
-
-echo "[+] Correcting workspace file ownership permissions..."
-chown -R ${TARGET_USER}:${TARGET_USER} "${USER_HOME}"
-
-echo "[+] JayOS Secure Wrapper deployment completely optimized and operational."
+echo "[+] Optimization and deployment completely operational."

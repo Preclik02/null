@@ -1,9 +1,9 @@
 #include "null.h"
 
 void save_command(char *command, char *username) {
-    const char *home = getenv("HOME");
-    char cache_path[256];
-    snprintf(cache_path, sizeof(cache_path), "%s/.null/cache/%s", home, username);
+    char cache_path[512];
+    // Appends command history directly into the root system asset directory
+    snprintf(cache_path, sizeof(cache_path), "/usr/local/lib/null/cache/%s", username);
     FILE *file = fopen(cache_path, "a");
     if (file) {
         fprintf(file, "%s\n", command);
@@ -12,11 +12,10 @@ void save_command(char *command, char *username) {
 }
 
 bool check_user(char *user) {
-    const char *home = getenv("HOME");
-    char path[256];
+    char path[512];
     char line[256];
 
-    snprintf(path, sizeof(path), "%s/.null/cache/users", home);
+    snprintf(path, sizeof(path), "/usr/local/lib/null/cache/users");
 
     FILE *file = fopen(path, "r");
     if (!file) {

@@ -1,10 +1,11 @@
 #include "null.h"
 
 void execute_command(char *command, const char *home, int *commands_happened) {
-    char path[256];
+    (void)home; // Explicitly silence the unused parameter warning
+    char path[512];
 
     if (strcmp(command, "quit") == 0) {
-        snprintf(path, sizeof(path), "%s/.null/cache/achievements", home);
+        snprintf(path, sizeof(path), "/usr/local/lib/null/cache/achievements");
         FILE *file = fopen(path, "w");
         if (file) {
             fprintf(file, "commands_happened --> %d", *commands_happened);
@@ -112,7 +113,7 @@ void execute_command(char *command, const char *home, int *commands_happened) {
     }
 
     else if (strcmp(command, "ssh") == 0) {
-        char command1[1024]; // Expanded buffer size to completely squash warning bounds check
+        char command1[1024]; 
         char user[256];
         char ip[256];
         printf("\n[-] User >> ");
@@ -163,11 +164,11 @@ void execute_command(char *command, const char *home, int *commands_happened) {
     }
 
     else if (strcmp(command, "port_scan") == 0) {
-        system("~/.null/src/port_scan/port_scan");
+        system("/usr/local/lib/null/src/port_scan/port_scan");
     }
 
     else if (strcmp(command, "jayfetch") == 0) {
-        system("~/.null/src/jayfetch/jayfetch");
+        system("/usr/local/lib/null/src/jayfetch/jayfetch");
     }
 
     else if (strcmp(command, "chmod") == 0) {
@@ -189,10 +190,10 @@ void execute_command(char *command, const char *home, int *commands_happened) {
         fflush(stdout);
         if (scanf("%255s", action) == 1) {
             if(strcmp(action, "open") == 0) {
-                system("~/.null/src/idek/idek todo.json");
+                system("/usr/local/lib/null/src/idek/idek todo.json");
             }
             else if (strcmp(action, "write") == 0) {
-                system("~/.null/src/todo/todo");
+                system("/usr/local/lib/null/src/todo/todo");
             }
             else {
                 printf("\n[+] Something has fucked up\n");
@@ -202,7 +203,7 @@ void execute_command(char *command, const char *home, int *commands_happened) {
         }
     }
     else if (strcmp(command, "dev_mode") == 0) {
-        system("~/.null/src/mode/mode");
+        system("/usr/local/lib/null/src/mode/mode");
     }
     else if (strcmp(command, "idek") == 0) {
         char filename[256];
@@ -210,7 +211,7 @@ void execute_command(char *command, const char *home, int *commands_happened) {
         printf("\n[-] Filename >> ");
         fflush(stdout);
         if (scanf("%255s", filename) == 1) {
-            snprintf(command1, sizeof(command1), "~/.null/src/idek/idek %s", filename);
+            snprintf(command1, sizeof(command1), "/usr/local/lib/null/src/idek/idek %s", filename);
             system(command1);
         } else {
             clearerr(stdin);
@@ -222,7 +223,7 @@ void execute_command(char *command, const char *home, int *commands_happened) {
         printf("\n[-] Text >> ");
         fflush(stdout);
         if (scanf("%511s", text) == 1) {
-            snprintf(command1, sizeof(command1), "~/.null/src/figlet/figlet %s", text);
+            snprintf(command1, sizeof(command1), "/usr/local/lib/null/src/figlet/figlet %s", text);
             system(command1);
         } else {
             clearerr(stdin);
@@ -244,8 +245,8 @@ void execute_command(char *command, const char *home, int *commands_happened) {
         system("printf \"\\033[0;35m\"");
     }
     else if (strcmp(command, "config") == 0) {
-        char command1[500];
-        snprintf(command1, sizeof(command1), "~/.null/src/idek/idek %s/.null/cache/null.conf", home);
+        char command1[512];
+        snprintf(command1, sizeof(command1), "/usr/local/lib/null/src/idek/idek /usr/local/lib/null/cache/null.conf");
         system(command1);
     }
 }

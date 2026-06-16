@@ -3,8 +3,8 @@
 #include <iostream>
 #include <algorithm>
 
-void drawStatusBar(const std::string& filename, int row, int col, int totalRows, int cols, EditorMode mode) {
-    std::cout << "\033[7m"; 
+void drawStatusBar(const std::string& filename, int row, int col, int /* totalRows */, int cols, EditorMode mode) {
+    std::cout << "\033[7m"; // Invert background and foreground
     
     std::string modeStr = (mode == NORMAL) ? " -- NORMAL -- " : " -- INSERT -- ";
     std::string status = modeStr + "File: " + filename + " | Ln " + std::to_string(row + 1) + ", Col " + std::to_string(col + 1);
@@ -18,7 +18,7 @@ void drawStatusBar(const std::string& filename, int row, int col, int totalRows,
     }
 
     std::cout << fullStatus;
-    std::cout << "\033[0m"; 
+    std::cout << "\033[0m"; // Reset formatting
 }
 
 void render(const std::vector<std::string>& buffer, int cursorRow, int cursorCol, int scrollOffset, int viewportHeight, int viewportWidth, bool blinkOn, EditorMode mode) {
@@ -32,7 +32,7 @@ void render(const std::vector<std::string>& buffer, int cursorRow, int cursorCol
             lineNum = std::string(lineNumWidth - lineNum.size(), ' ') + lineNum;
 
         if (i == cursorRow) {
-            std::cout << "\033[48;5;250m"; 
+            std::cout << "\033[48;5;250m"; // Light gray background for current line
         }
 
         std::cout << "\033[90m" << lineNum << " \033[0m";  
@@ -66,6 +66,7 @@ void render(const std::vector<std::string>& buffer, int cursorRow, int cursorCol
         }
     }
 
+    // Fill remaining space with tilde lines
     for (int i = endLine; i < scrollOffset + viewportHeight; ++i) {
         std::string lineNum = std::to_string(i + 1);
         const int lineNumWidth = 5;
@@ -75,6 +76,7 @@ void render(const std::vector<std::string>& buffer, int cursorRow, int cursorCol
         std::cout << "\033[90m~\033[0m\n";
     }
 
+    // Place cursor considering 5-digit gutter line spacing + 1 space padding = 6 columns
     moveCursor(cursorRow - scrollOffset, cursorCol + 6);
     drawStatusBar("YourFile", cursorRow, cursorCol, (int)buffer.size(), viewportWidth, mode);
 }
