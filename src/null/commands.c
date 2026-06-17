@@ -163,7 +163,7 @@ void execute_command(char *command, const char *home, int *commands_happened) {
         }
     }
 
-    else if (strcmp(command, "port_scan") == 0) {
+    else if (strcmp(command, "port") == 0) {
         system("/usr/local/lib/null/src/port_scan/port_scan");
     }
 
