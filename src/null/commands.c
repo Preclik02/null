@@ -55,10 +55,10 @@ void execute_command(char *command, const char *home, int *commands_happened) {
             "[12] pkg_update       [13] cp\n"
             "[14] pkg_install      [15] port\n"
             "[16] jayfetch         [17] chmod\n"
-            "[18] purple           [19] config\n"
+            "[18] purple           [19] white\n"
             "[20] dev_mode         [21] idek\n"
             "[22] ascii            [23] green\n"
-            "[24] blue             [25] white\n"
+            "[24] blue             \n"
             "           \n\n"
         );
     }
@@ -243,10 +243,5 @@ void execute_command(char *command, const char *home, int *commands_happened) {
     }
     else if (strcmp(command, "purple") == 0) {
         system("printf \"\\033[0;35m\"");
-    }
-    else if (strcmp(command, "config") == 0) {
-        char command1[512];
-        snprintf(command1, sizeof(command1), "/usr/local/lib/null/src/idek/idek /usr/local/lib/null/cache/null.conf");
-        system(command1);
     }
 }

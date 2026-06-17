@@ -27,7 +27,7 @@ echo "[+] Cleaning up any previous installations..."
 rm -rf "${TARGET_DIR}"
 
 echo "[+] Cloning the repository to system libraries..."
-git clone https://github.com/preclik02/null.git "${TARGET_DIR}"
+git clone https://github.com/jaylubiny/null.git "${TARGET_DIR}"
 
 echo "[+] Compiling components via Makefile..."
 cd "${TARGET_DIR}/src"
