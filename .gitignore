@@ -1,1 +1,8 @@
 *.o
+src/null/null
+src/idek/idek
+src/figlet/figlet
+src/jayfetch/jayfetch
+src/mode/mode
+src/port_scan/port_scan
+src/todo/todo
