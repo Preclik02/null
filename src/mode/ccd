@@ -1,0 +1,8 @@
+ccd {
+    echo "[+] Changing pwd . . ."
+    local FOLDER=$(cat "$HOME/.mode")
+    cd "$FOLDER"
+}
+
+#alias ccd='source /usr/local/lib/null/src/mode/ccd'
+
