@@ -2,15 +2,16 @@
 This is part of the NullOS tool set.
 
 **Instalation**
-Install it on web in description of this repo or download the install.sh
-If you want manual install than make sure all of the files and directories exist as in the repo and the nc folder is in path.
+The installation process is very simple you just have to execute the install.sh file and it will automatically install null onto your system, with that being said it might not install properly on your system since it is made for the JayOS and not other arch linux distributions. If you would like to do manual install of null you can clone this repository into /usr/local/lib than cd into /usr/local/lib/null/src run "make" and copy the null executable into /usr/local/bin and the installation is done so the manual installation will look like this somehow.
 
+``` bash
+git clone https://github.com/jaylubiny/null /usr/local/lib
+make /usr/local/lib/null/src
+cp /usr/local/lib/null/src/null/null /usr/local/bin
+```
 
-*notes* --> If you are not installing with install.sh than make directory ~/.null/cache/ssh. Null also saves your commands into a filename of your username in cache folder and sends them to setted sshfs server YOU SET.
-If you are having issues installing or using null re-doing the installation process will usually fix any problem.
-If you are wondering why the Ctrl+c won't kill the program I still haven't found solution for it just press random key and enter and it will exit how it should.
+I did not test this and I don't know if it will even run but this is just somewhat inspiration on how it would look like. 
 
-
-
+If you have any issues while installation or some feedback for this or JayOS feel free to create an issue or email us on support@jaylub.com.
 
 
