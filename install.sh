@@ -19,9 +19,9 @@ if [ ! -f /etc/arch-release ]; then
     exit 1
 fi
 
-# 3. Install Dependencies
+# 3. Install Dependencies (Added -y flag to guarantee database sync inside live environment)
 echo "[+] Installing core build system packages..."
-pacman -S --needed --noconfirm make openssh figlet sshfs
+pacman -Sy --needed --noconfirm make openssh figlet sshfs
 
 echo "[+] Cleaning up any previous installations..."
 rm -rf "${TARGET_DIR}"
@@ -47,12 +47,13 @@ echo "[+] Configuring shell aliases..."
 # Try to grab the username of the person who called sudo
 REAL_USER="${SUDO_USER:-$USER}"
 
-# Get the bulletproof home directory path for that specific user from the system database
-if [ -n "$SUDO_USER" ]; then
-    REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
-else
-    REAL_HOME="$HOME"
+# Fix: If running under automated setup (root environment) but jaylub user exists, force target jaylub
+if [ "$REAL_USER" = "root" ] && id "jaylub" &>/dev/null; then
+    REAL_USER="jaylub"
 fi
+
+# Get the home directory path for that specific target user from the system database
+REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 
 # Fallback check just in case getent failed or returned empty
 if [ -z "$REAL_HOME" ] || [ "$REAL_HOME" = "/root" ] && [ "$REAL_USER" != "root" ]; then
@@ -66,11 +67,11 @@ echo "[+] Target user detected: ${REAL_USER} (Home: ${REAL_HOME})"
 
 for rc in "${RC_FILES[@]}"; do
     RC_PATH="${REAL_HOME}/${rc}"
-    
+
     if [ -f "$RC_PATH" ]; then
         if ! grep -Fq "$ALIAS_LINE" "$RC_PATH"; then
             echo "$ALIAS_LINE" >> "$RC_PATH"
-            chown "${REAL_USER}:" "$RC_PATH"
+            chown "${REAL_USER}:${REAL_USER}" "$RC_PATH"
             echo "[+] Added 'ccd' alias to ${RC_PATH}"
         else
             echo "[+] 'ccd' alias already exists in ${RC_PATH}"
